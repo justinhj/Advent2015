@@ -31,8 +31,6 @@ fun main(args: Array<String>) {
                 (n[2] == 0.toByte())
     }
 
-   // println(check(b))
-
     var n = 0
     //val prefix = "abcdef"
     val prefix = "yzbqklnj"
@@ -42,5 +40,4 @@ fun main(args: Array<String>) {
     } while (check == false)
 
     print(n) // test output 609043
-
 }
