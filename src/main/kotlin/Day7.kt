@@ -174,6 +174,8 @@ data class Solver(val elements: List<Element>,
 fun solve(input: Solver): Solver {
     var newWires: MutableMap<String,Int> = input.wires.toMutableMap()
 
+    var added = false
+
     val remainingElements = input.elements.filter {
         val r = it.execute(newWires)
         if(r == null)
@@ -181,11 +183,12 @@ fun solve(input: Solver): Solver {
         else {
             println("Adding wire ${r.first} / ${r.second}")
             newWires.put(r.first,r.second)
+            added = true
             false // remove the element
         }
     }
 
-    return Solver(remainingElements, false, newWires)
+    return Solver(remainingElements, !added, newWires)
 }
 
 
@@ -210,11 +213,14 @@ fun main() {
 
     val input = {}::class.java.getResource("day7.txt").readText()
     val inputElements = inputToElements(input)
-    val inputSolver = Solver(inputElements)
+    var inputSolver = Solver(inputElements)
 
-    val s2 = solve(inputSolver)
+    do {
+        inputSolver = solve(inputSolver)
+        println("done? ${inputSolver.done}")
+    } while(!inputSolver.done)
 
-    for (wire in s2.wires) {
+    for (wire in inputSolver.wires) {
         var v = wire.value
         if(v < 0) v += 65536
         println("wire ${wire.key} -> $v")
