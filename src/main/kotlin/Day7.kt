@@ -28,6 +28,29 @@ val sample = """
 //   otherwise propagate to the wires value
 // repeat until nothing changes
 
+// Note this is a simple solution and works for the puzzle but there's a more efficient way
+// Add an element to represent a known value. e.g, Value(value: Int): Element...
+// Now you can make a mutable map that is keyed by unknown values...
+// Map<String,Element>
+// You can loop through the elements with this algorithm
+// foreach element
+//    what are the unknowns? eg with "a and b -> c" unknowns are a and b
+//    add a map entry for both a and b linking to this element
+//    go to the next element in the list... "123 -> a" for example
+//    in this case there are no unknowns. we can add <"a", Value(123)> to the map
+//    now when you go to add that to the map you see that a is the element
+//    <a,"a and b -> c">
+//    so you can set a to value(123) but also update the b dependency
+//    remember b was <"b", And(a,b,c)>
+//    now it will become And(123,b,c)
+//    later when we know b we will come here and we can resolve the And completely
+//    and set a new entry for c to be the actual value
+// there's a question here as to whether it would help any to add the outputs
+// to the map, which i'd have to work through
+
+// it was also suggested to do this with actors and coroutines? may be a fun exercise
+
+
 // Each element contains the parsed parameters and an execute function that given
 // the known wires will generate a new known wire and its value, otherwise null
 abstract class Element(out: String) {
@@ -183,7 +206,7 @@ fun solve(input: Solver): Solver {
             true // leave the element
         else {
             println("Adding wire ${r.first} / ${r.second}")
-            newWires.put(r.first,r.second)
+            newWires.putIfAbsent(r.first,r.second)
             added = true
             false // remove the element
         }
@@ -213,6 +236,15 @@ fun main() {
         println("wire ${wire.key} -> $v")
     }
 
+    //    d: 72
+//    e: 507
+//    f: 492
+//    g: 114
+//    h: 65412
+//    i: 65079
+//    x: 123
+//    y: 456
+
     println("\n\nlololol\n\n")
 
     val input = {}::class.java.getResource("day7.txt").readText()
@@ -230,14 +262,22 @@ fun main() {
         println("wire ${wire.key} -> $v")
     }
 
-//    d: 72
-//    e: 507
-//    f: 492
-//    g: 114
-//    h: 65412
-//    i: 65079
-//    x: 123
-//    y: 456
+    // Part 2 feed 16076 as b ...
+
+    var inputSolver2 = Solver(inputElements,false,mapOf("b" to 16076))
+
+    do {
+        inputSolver2 = solve(inputSolver2)
+        println("done? ${inputSolver2.done}")
+    } while(!inputSolver2.done)
+
+    for (wire in inputSolver2.wires) {
+        var v = wire.value
+        if(v < 0) v += 65536
+        println("wire ${wire.key} -> $v")
+    }
+
+
 
 }
 
