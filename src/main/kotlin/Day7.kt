@@ -100,7 +100,7 @@ data class Signal(val value: Int, val out: String): Element(out)  {
 fun stringToElement(input: String): Element? {
 
     // 123 -> x
-    val m1 =  Regex("(\\d+) -> (\\w+)").find(input)
+    val m1 =  Regex("^(\\d+) -> (\\w+)").find(input)
     if(m1 != null) {
         val (value, out) = m1.destructured
         return Signal(value.toInt(),out)
@@ -127,7 +127,7 @@ fun stringToElement(input: String): Element? {
     val m5 =  Regex("(\\w+) RSHIFT (\\d+) -> (\\w+)").find(input)
     if(m5 != null) {
         val (w1, value, out) = m5.destructured
-        return LShift(w1,value.toInt(),out)
+        return RShift(w1,value.toInt(),out)
     }
     // NOT x -> h
     val m6 =  Regex("NOT (\\w+) -> (\\w+)").find(input)
@@ -154,7 +154,7 @@ data class Solver(val elements: List<Element>,
 // Given a list of elements and a map of known wires solve what you can
 // Solve elements are removed and new wires are added
 // Call this repeatedly until done is true or the heat death of the universe
-fun solve(input: Solver): Solver? {
+fun solve(input: Solver): Solver {
     var newWires: MutableMap<String,Int> = input.wires.toMutableMap()
 
     val remainingElements = input.elements.filter {
@@ -181,7 +181,22 @@ fun main() {
     val sampleElements = inputToElements(sample)
     val sampleSolver = Solver(sampleElements)
 
-    solve(sampleSolver)
+    val s = solve(sampleSolver)
+
+    for (wire in s.wires) {
+        var v = wire.value
+        if(v < 0) v += 65536
+        println("wire ${wire.key} -> $v")
+    }
+
+//    d: 72
+//    e: 507
+//    f: 492
+//    g: 114
+//    h: 65412
+//    i: 65079
+//    x: 123
+//    y: 456
 
 }
 
