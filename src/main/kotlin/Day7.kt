@@ -97,6 +97,17 @@ data class Signal(val value: Int, val out: String): Element(out)  {
     }
 }
 
+data class WireSignal(val wire: String, val out: String): Element(out)  {
+    override fun execute(wires: Map<String, Int>): Pair<String, Int>? {
+        val w1 = wires.get(wire)
+        if (w1 != null) {
+            return Pair(out, w1)
+        } else {
+            return null
+        }
+    }
+}
+
 fun stringToElement(input: String): Element? {
 
     // 123 -> x
@@ -134,6 +145,12 @@ fun stringToElement(input: String): Element? {
     if(m6 != null) {
         val (w1, out) = m6.destructured
         return Not(w1,out)
+    }
+    // x -> y
+    val m7 =  Regex("^(\\w+) -> (\\w+)").find(input)
+    if(m7 != null) {
+        val (wire, out) = m7.destructured
+        return WireSignal(wire,out)
     }
 
     return null
@@ -184,6 +201,20 @@ fun main() {
     val s = solve(sampleSolver)
 
     for (wire in s.wires) {
+        var v = wire.value
+        if(v < 0) v += 65536
+        println("wire ${wire.key} -> $v")
+    }
+
+    println("\n\nlololol\n\n")
+
+    val input = {}::class.java.getResource("day7.txt").readText()
+    val inputElements = inputToElements(input)
+    val inputSolver = Solver(inputElements)
+
+    val s2 = solve(inputSolver)
+
+    for (wire in s2.wires) {
         var v = wire.value
         if(v < 0) v += 65536
         println("wire ${wire.key} -> $v")
