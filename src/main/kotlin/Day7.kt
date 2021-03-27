@@ -2,14 +2,14 @@
 // Day 7 solution
 
 val sample = """
-    123 -> x
-    456 -> y
-    x AND y -> d
-    x OR y -> e
-    x LSHIFT 2 -> f
-    y RSHIFT 2 -> g
-    NOT x -> h
-    NOT y -> i
+    123 -> xx
+    456 -> yy
+    xx AND yy -> dd
+    xx OR yy -> ee
+    xx LSHIFT 2 -> ff
+    yy RSHIFT 2 -> gg
+    NOT xx -> hh
+    NOT yy -> ii
 """.trimIndent()
 
 // Method
@@ -34,10 +34,23 @@ abstract class Element(out: String) {
     abstract fun execute(wires: Map<String,Int>): Pair<String,Int>?
 }
 
-data class And(val wire1: String,val wire2: String, val out: String): Element(out) {
+// Handle any string as a numeric value or a wire name and get the value or null
+fun value(input: String, wires: Map<String, Int>): Int? {
+    return try {
+        input.toInt()
+    } catch (exception: NumberFormatException) {
+        val w = wires.get(input)
+        if (w != null)
+            w
+        else
+            null
+    }
+}
+
+data class And(val left: String,val right: String, val out: String): Element(out) {
     override fun execute(wires: Map<String,Int>): Pair<String,Int>? {
-        val w1 = wires.get(wire1)
-        val w2 = wires.get(wire2)
+        val w1 = value(left,wires)
+        val w2 = value(right,wires)
         if(w1 != null && w2 != null) {
             return Pair(out, w1 and w2)
         } else {
@@ -46,11 +59,11 @@ data class And(val wire1: String,val wire2: String, val out: String): Element(ou
     }
 }
 
-data class Or(val wire1: String,val wire2: String, val out: String): Element(out) {
-    override fun execute(wires: Map<String, Int>): Pair<String, Int>? {
-        val w1 = wires.get(wire1)
-        val w2 = wires.get(wire2)
-        if (w1 != null && w2 != null) {
+data class Or(val left: String,val right: String, val out: String): Element(out) {
+    override fun execute(wires: Map<String,Int>): Pair<String,Int>? {
+        val w1 = value(left,wires)
+        val w2 = value(right,wires)
+        if(w1 != null && w2 != null) {
             return Pair(out, w1 or w2)
         } else {
             return null
@@ -58,9 +71,9 @@ data class Or(val wire1: String,val wire2: String, val out: String): Element(out
     }
 }
 
-data class LShift(val wire1: String,val amount: Int, val out: String): Element(out) {
+data class LShift(val wire: String,val amount: Int, val out: String): Element(out) {
     override fun execute(wires: Map<String, Int>): Pair<String, Int>? {
-        val w1 = wires.get(wire1)
+        val w1 = value(wire,wires)
         if (w1 != null) {
             return Pair(out, w1 shl amount)
         } else {
@@ -69,9 +82,9 @@ data class LShift(val wire1: String,val amount: Int, val out: String): Element(o
     }
 }
 
-data class RShift(val wire1: String,val amount: Int, val out: String): Element(out) {
+data class RShift(val wire: String,val amount: Int, val out: String): Element(out) {
     override fun execute(wires: Map<String, Int>): Pair<String, Int>? {
-        val w1 = wires.get(wire1)
+        val w1 = value(wire,wires)
         if (w1 != null) {
             return Pair(out, w1 shr amount)
         } else {
@@ -80,9 +93,9 @@ data class RShift(val wire1: String,val amount: Int, val out: String): Element(o
     }
 }
 
-data class Not(val wire1: String, val out: String): Element(out)  {
+data class Not(val wire: String, val out: String): Element(out)  {
     override fun execute(wires: Map<String, Int>): Pair<String, Int>? {
-        val w1 = wires.get(wire1)
+        val w1 = value(wire,wires)
         if (w1 != null) {
             return Pair(out, w1.inv())
         } else {
@@ -91,15 +104,9 @@ data class Not(val wire1: String, val out: String): Element(out)  {
     }
 }
 
-data class Signal(val value: Int, val out: String): Element(out)  {
+data class Signal(val wire: String, val out: String): Element(out)  {
     override fun execute(wires: Map<String, Int>): Pair<String, Int>? {
-        return Pair(out, value)
-    }
-}
-
-data class WireSignal(val wire: String, val out: String): Element(out)  {
-    override fun execute(wires: Map<String, Int>): Pair<String, Int>? {
-        val w1 = wires.get(wire)
+        val w1 = value(wire,wires)
         if (w1 != null) {
             return Pair(out, w1)
         } else {
@@ -111,10 +118,10 @@ data class WireSignal(val wire: String, val out: String): Element(out)  {
 fun stringToElement(input: String): Element? {
 
     // 123 -> x
-    val m1 =  Regex("^(\\d+) -> (\\w+)").find(input)
+    val m1 =  Regex("^(\\w+) -> (\\w+)").find(input)
     if(m1 != null) {
         val (value, out) = m1.destructured
-        return Signal(value.toInt(),out)
+        return Signal(value,out)
     }
     // x AND y -> d
     val m2 =  Regex("(\\w+) AND (\\w+) -> (\\w+)").find(input)
@@ -122,7 +129,7 @@ fun stringToElement(input: String): Element? {
         val (w1, w2, out) = m2.destructured
         return And(w1,w2,out)
     }
-    // x AND y -> d
+    // x OR y -> d
     val m3 =  Regex("(\\w+) OR (\\w+) -> (\\w+)").find(input)
     if(m3 != null) {
         val (w1, w2, out) = m3.destructured
@@ -145,12 +152,6 @@ fun stringToElement(input: String): Element? {
     if(m6 != null) {
         val (w1, out) = m6.destructured
         return Not(w1,out)
-    }
-    // x -> y
-    val m7 =  Regex("^(\\w+) -> (\\w+)").find(input)
-    if(m7 != null) {
-        val (wire, out) = m7.destructured
-        return WireSignal(wire,out)
     }
 
     return null
@@ -187,6 +188,9 @@ fun solve(input: Solver): Solver {
             false // remove the element
         }
     }
+
+    println("remaining elements ${remainingElements.size}")
+    println("known wires ${newWires.size}")
 
     return Solver(remainingElements, !added, newWires)
 }
