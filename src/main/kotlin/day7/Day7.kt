@@ -1,3 +1,4 @@
+package day7
 
 // Day 7 solution
 
@@ -49,7 +50,6 @@ val sample = """
 // to the map, which i'd have to work through
 
 // it was also suggested to do this with actors and coroutines? may be a fun exercise
-
 
 // Each element contains the parsed parameters and an execute function that given
 // the known wires will generate a new known wire and its value, otherwise null
@@ -247,7 +247,7 @@ fun main() {
 
     println("\n\nlololol\n\n")
 
-    val input = {}::class.java.getResource("day7.txt").readText()
+    val input = {}::class.java.getResource("day7/day7.txt").readText()
     val inputElements = inputToElements(input)
     var inputSolver = Solver(inputElements)
 

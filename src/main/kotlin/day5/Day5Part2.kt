@@ -62,7 +62,7 @@ fun String.isGood(): Boolean {
 
 fun main(args: Array<String>) {
 
-    "day5.txt".asResource {
+    "day5/day5.txt".asResource {
         val lines = it.split("\n")
         println("found ${lines.size} lines")
 

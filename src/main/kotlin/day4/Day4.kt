@@ -1,4 +1,4 @@
-
+package day4
 // Kotlin has packages just like Java but we just put this in the default one...
 
 // Imports are like Java but you don't need ;
