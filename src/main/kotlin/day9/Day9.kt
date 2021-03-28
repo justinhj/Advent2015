@@ -1,7 +1,5 @@
 package day9
 
-import day7.LShift
-
 // strategy parse the input into a map of maps
 // so you can get the distance between any two
 // cities
@@ -9,6 +7,7 @@ import day7.LShift
 // Dublin to Belfast = 141
 
 // TODO this is kind of a mess it must be easier to work with immutable collections than this?
+
 fun distanceMap(input: List<String>): Map<String, Map<String,Int>> {
 
     val dm: MutableMap<String, MutableMap<String,Int>> = mutableMapOf()
@@ -37,7 +36,7 @@ fun <T> Set<T>.permutations(): List<List<T>> {
             r.remove(it)
             val perms = r.permutations()
             perms.map { a ->
-                val nl = a.toMutableList()
+                val nl = a.toMutableList() // Bleurgh...
                 nl.add(it)
                 nl.toList()
             }
