@@ -53,9 +53,8 @@ fun main(args: Array<String>) {
         var goodCount = 0
 
         lines.forEach {
-            if (it.isGood()) goodCount += 1
+            if (it.isGood()) goodCount ++
         }
-
         println("$goodCount were good")
     }
 
