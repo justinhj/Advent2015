@@ -30,17 +30,17 @@ data class JSONObject(val elements: Map<JSONString,JSONThing>) : JSONThing()
 // after the thing you parsed
 fun parse(lookingAt: Int, input: String): Pair<Int,JSONThing> {
 
-    val lookat = input[lookingAt]
+    val lookAt = input[lookingAt]
 
-    if(lookat.isDigit() || lookat == '-') {
-        return parseNumber(lookingAt, input)
+    return if(lookAt.isDigit() || lookAt == '-') {
+        parseNumber(lookingAt, input)
     } else {
-        when(lookat) {
-            ' ' -> return parse(lookingAt + 1,input)
-            '\t' -> return parse(lookingAt + 1,input)
-            '\"' -> return parseString(lookingAt, input)
-            '[' -> return parseArray(lookingAt, input)
-            '{' -> return parseObject(lookingAt, input)
+        when(lookAt) {
+            ' ' -> parse(lookingAt + 1,input)
+            '\t' -> parse(lookingAt + 1,input)
+            '\"' -> parseString(lookingAt, input)
+            '[' -> parseArray(lookingAt, input)
+            '{' -> parseObject(lookingAt, input)
             else -> throw Exception("parse error")
         }
     }
@@ -70,7 +70,7 @@ fun parseString(lookingAt: Int, input: String): Pair<Int,JSONString> {
 fun parseArray(lookingAt: Int, input: String): Pair<Int,JSONArray> {
     // parse the things separated by ,
     var i = lookingAt
-    var l = mutableListOf<JSONThing>()
+    val l = mutableListOf<JSONThing>()
     i++ // skip [
     while(true) {
         if(input[i] == ']') {
@@ -91,7 +91,7 @@ fun parseObject(lookingAt: Int, input: String): Pair<Int,JSONObject> {
     // parse each object which is a string followed by an object
     // with commas in between
     var i = lookingAt
-    var l = mutableMapOf<JSONString,JSONThing>()
+    val l = mutableMapOf<JSONString,JSONThing>()
     i++ // skip {
     while(true) {
         if(input[i] == '}') {
@@ -108,7 +108,7 @@ fun parseObject(lookingAt: Int, input: String): Pair<Int,JSONObject> {
         i++
         while(input[i] == ' ') i++
         val value = parse(i, input)
-        l.put(key.second as JSONString, value.second)
+        l[key.second as JSONString] = value.second
         i = value.first
     }
 
@@ -145,14 +145,14 @@ fun main() {
 
     fun calcSum(json: JSONThing): Int {
 
-        when (json) {
-            is JSONNumber -> return json.value
-            is JSONString -> return 0
-            is JSONArray -> return json.elements.sumBy { thing -> calcSum(thing) }
-            is JSONObject -> return if(json.elements.containsValue(JSONString("red"))) 0
-                 else {
-                    json.elements.values.sumBy { thing -> calcSum(thing) }
-                 }
+        return when (json) {
+            is JSONNumber -> json.value
+            is JSONString -> 0
+            is JSONArray -> json.elements.sumBy { thing -> calcSum(thing) }
+            is JSONObject -> if(json.elements.containsValue(JSONString("red"))) 0
+            else {
+                json.elements.values.sumBy { thing -> calcSum(thing) }
+            }
         }
 
     }
