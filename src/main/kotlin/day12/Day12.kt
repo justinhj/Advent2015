@@ -22,7 +22,7 @@ fun sum(s: String): Int {
 
 sealed class JSONThing
 data class JSONString(val value: String) : JSONThing()
-data class JSONNumber(val value: String) : JSONThing()
+data class JSONNumber(val value: Int) : JSONThing()
 data class JSONArray(val elements: List<JSONThing>) : JSONThing()
 data class JSONObject(val elements: Map<JSONString,JSONThing>) : JSONThing()
 
@@ -32,14 +32,30 @@ fun parse(lookingAt: Int, input: String): Pair<Int,JSONThing> {
 
     val lookat = input[lookingAt]
 
-    when(lookat) {
-        ' ' -> return parse(lookingAt + 1,input)
-        '\t' -> return parse(lookingAt + 1,input)
-        '\"' -> return parseString(lookingAt, input)
-        '[' -> return parseArray(lookingAt, input)
-        else -> throw Exception("parse error")
+    if(lookat.isDigit() || lookat == '-') {
+        return parseNumber(lookingAt, input)
+    } else {
+        when(lookat) {
+            ' ' -> return parse(lookingAt + 1,input)
+            '\t' -> return parse(lookingAt + 1,input)
+            '\"' -> return parseString(lookingAt, input)
+            '[' -> return parseArray(lookingAt, input)
+            '{' -> return parseObject(lookingAt, input)
+            else -> throw Exception("parse error")
+        }
     }
+}
 
+fun parseNumber(lookingAt: Int, input: String): Pair<Int,JSONNumber> {
+
+    var i = lookingAt
+    if(input[i] == '-') i++
+
+    while(i < input.length && input[i].isDigit()) i++
+
+    val value = input.subSequence(lookingAt,i).toString().toInt()
+
+    return Pair(i, JSONNumber(value))
 }
 
 fun parseString(lookingAt: Int, input: String): Pair<Int,JSONString> {
@@ -55,7 +71,7 @@ fun parseArray(lookingAt: Int, input: String): Pair<Int,JSONArray> {
     // parse the things separated by ,
     var i = lookingAt
     var l = mutableListOf<JSONThing>()
-    i++ // skip first [
+    i++ // skip [
     while(true) {
         if(input[i] == ']') {
             break
@@ -69,6 +85,34 @@ fun parseArray(lookingAt: Int, input: String): Pair<Int,JSONArray> {
     }
 
     return Pair(i + 1, JSONArray(l))
+}
+
+fun parseObject(lookingAt: Int, input: String): Pair<Int,JSONObject> {
+    // parse each object which is a string followed by an object
+    // with commas in between
+    var i = lookingAt
+    var l = mutableMapOf<JSONString,JSONThing>()
+    i++ // skip {
+    while(true) {
+        if(input[i] == '}') {
+            break
+        } else if(input[i] == ',') {
+            i++
+        }
+        val key = parse(i, input)
+        // skip whitespace and expect a :
+        i = key.first
+        if(key.second !is JSONString) throw Exception("invalid object key")
+        while(input[i] == ' ') i++
+        if(input[i] != ':') throw Exception("no colon in object key value")
+        i++
+        while(input[i] == ' ') i++
+        val value = parse(i, input)
+        l.put(key.second as JSONString, value.second)
+        i = value.first
+    }
+
+    return Pair(i + 1, JSONObject(l))
 }
 
 fun main() {
@@ -88,7 +132,31 @@ fun main() {
     // Part two
 
     println(parse(0, "\"test\""))
+    println(parse(0, """{}"""))
+    println(parse(0, """12"""))
+    println(parse(0, """[12,13,14]"""))
+
+    println(parse(0, """{"key1":["value1", "value2"]}"""))
     println(parse(0, """["Nero", "Justin", "Jamie"]"""))
     println(parse(0, """[["Lisa", "Lara"], "Nero", "Justin", "Jamie"]"""))
+    println(parse(0, """{"a":{"b":4},"c":-1}"""))
+
+    val parsed = parse(0,input)
+
+    fun calcSum(json: JSONThing): Int {
+
+        when (json) {
+            is JSONNumber -> return json.value
+            is JSONString -> return 0
+            is JSONArray -> return json.elements.sumBy { thing -> calcSum(thing) }
+            is JSONObject -> return if(json.elements.containsValue(JSONString("red"))) 0
+                 else {
+                    json.elements.values.sumBy { thing -> calcSum(thing) }
+                 }
+        }
+
+    }
+
+    println("Input sum is ${calcSum(parsed.second)}")
 
 }
