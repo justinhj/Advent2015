@@ -125,7 +125,10 @@ fun main() {
 
     // Part one
 
-    val input = {}::class.java.getResource("day12.txt").readText()
+    val url = {}::class.java.getResource("day12.txt")
+
+    if(url == null) throw Exception("Failed to access the sample data")
+    val input = url.readText()
 
     println(sum(input))
 
