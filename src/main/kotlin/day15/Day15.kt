@@ -84,6 +84,62 @@ fun scoreCookie(ingredients: List<Pair<Ingredient, Int>>): Int {
     return score
 }
 
+fun bestCookie2(ingredients: List<Ingredient>, remainTeaspoons: Int, pairs: List<Pair<Ingredient,Int>>, best: Int): Int {
+
+    //println("ingredients ${ingredients.size} remain ${remainTeaspoons} pairs ${pairs.size} best $best")
+
+    if(ingredients.size == 1) {
+        val final = Pair(ingredients.first(),remainTeaspoons)
+        val newPairs = pairs.toMutableList()
+        newPairs.add(final)
+        return Math.max(best, scoreCookie2(newPairs))
+    } else {
+        val remaining = ingredients.subList(1,ingredients.size)
+        var newBest = best
+
+        for(t in 0..remainTeaspoons) {
+            val newPairs = pairs.toMutableList()
+            newPairs.add(Pair(ingredients.first(), t))
+            newBest = Math.max(
+                bestCookie2(remaining, remainTeaspoons - t, newPairs, newBest), newBest)
+        }
+
+        return newBest
+    }
+}
+
+fun scoreCookie2(ingredients: List<Pair<Ingredient, Int>>): Int {
+
+    var capacity = 0
+    var durability = 0
+    var flavor = 0
+    var texture = 0
+    var calories = 0
+
+    ingredients.forEach{
+        (i,q) ->
+            capacity = capacity + i.capacity * q
+            durability = durability + i.durability * q
+            flavor = flavor + i.flavor * q
+            texture = texture + i.texture * q
+            calories = calories + i.calories * q
+    }
+
+    if(calories == 500) {
+        capacity = Math.max(0,capacity)
+        durability = Math.max(0,durability)
+        flavor = Math.max(0,flavor)
+        texture = Math.max(0,texture)
+
+        val score = capacity * durability * flavor * texture
+        //println("score $score")
+        return score
+    } else {
+        return 0
+    }
+
+
+}
 
 fun main() {
 
@@ -114,6 +170,9 @@ fun main() {
 
     println("calculate sample score ${bestCookie(parsedSample, 100, listOf(), 0)}")
     println("calculate part 1 score ${bestCookie(parsed, 100, listOf(), 0)}")
+
+    println("calculate sample score 2 ${bestCookie2(parsedSample, 100, listOf(), 0)}")
+    println("calculate part 2 score ${bestCookie2(parsed, 100, listOf(), 0)}")
 
 
 }
