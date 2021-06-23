@@ -245,39 +245,41 @@ fun main() {
 //    x: 123
 //    y: 456
 
-    println("\n\nlololol\n\n")
+    val resource = {}::class.java.getResource("day7.txt")
 
-    val input = {}::class.java.getResource("day7/day7.txt").readText()
-    val inputElements = inputToElements(input)
-    var inputSolver = Solver(inputElements)
+    if(resource != null) {
+        val input = resource.readText()
 
-    do {
-        inputSolver = solve(inputSolver)
-        println("done? ${inputSolver.done}")
-    } while(!inputSolver.done)
+        val inputElements = inputToElements(input)
+        var inputSolver = Solver(inputElements)
 
-    for (wire in inputSolver.wires) {
-        var v = wire.value
-        if(v < 0) v += 65536
-        println("wire ${wire.key} -> $v")
+        do {
+            inputSolver = solve(inputSolver)
+            println("done? ${inputSolver.done}")
+        } while(!inputSolver.done)
+
+        for (wire in inputSolver.wires) {
+            var v = wire.value
+            if(v < 0) v += 65536
+            println("wire ${wire.key} -> $v")
+        }
+
+        // Part 2 feed 16076 as b ...
+
+        var inputSolver2 = Solver(inputElements,false,mapOf("b" to 16076))
+
+        do {
+            inputSolver2 = solve(inputSolver2)
+            println("done? ${inputSolver2.done}")
+        } while(!inputSolver2.done)
+
+        for (wire in inputSolver2.wires) {
+            var v = wire.value
+            if(v < 0) v += 65536
+            println("wire ${wire.key} -> $v")
+        }
+    } else {
+        println("Failed to load resources")
     }
-
-    // Part 2 feed 16076 as b ...
-
-    var inputSolver2 = Solver(inputElements,false,mapOf("b" to 16076))
-
-    do {
-        inputSolver2 = solve(inputSolver2)
-        println("done? ${inputSolver2.done}")
-    } while(!inputSolver2.done)
-
-    for (wire in inputSolver2.wires) {
-        var v = wire.value
-        if(v < 0) v += 65536
-        println("wire ${wire.key} -> $v")
-    }
-
-
-
 }
 
